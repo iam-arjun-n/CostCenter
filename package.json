@@ -11,16 +11,24 @@
     "@cap-js/sqlite": "^2",
     "@sap/cds-dk": "^9",
     "mbt": "^1.2.34",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "cds-plugin-ui5": "^0.13.0"
   },
   "scripts": {
     "start": "cds-serve",
     "build": "rimraf resources mta_archives && mbt build --mtar archive",
-    "deploy": "cf deploy mta_archives/archive.mtar --retries 1"
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "watch-costcenter": "cds watch --open com.deloitte.mdg.cost.center.costcenter/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "undeploy": "cf undeploy cost-center --delete-services --delete-service-keys --delete-service-brokers"
   },
   "private": true,
-  "cds": {"[production]": {
+  "cds": {
+    "[production]": {
       "auth": "xsuaa",
       "db": "hana-cloud"
-    }}
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ]
 }
