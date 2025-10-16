@@ -1,7 +1,22 @@
 {
   "xsappname": "cost-center",
   "tenant-mode": "dedicated",
-  "description": "Security profile of called application",
-  "scopes": [],
-  "role-templates": []
+  "description": "Security profile of Cost Center app",
+  "scopes": [
+    {
+      "name": "uaa.user",
+      "description": "UAA"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Token_Exchange",
+      "description": "UAA",
+      "scope-references": [
+        "uaa.user"
+      ]
+    }
+  ],
+  "attributes": [],
+  "authorities-inheritance": false
 }
