@@ -3,87 +3,122 @@ ID: cost-center
 description: A simple CAP project.
 version: 1.0.0
 modules:
-- name: cost-center-srv
-  type: nodejs
-  path: gen/srv
-  requires:
-  - name: cost-center-db
-  provides:
-  - name: srv-api
-    properties:
-      srv-url: ${default-url}
-  parameters:
-    buildpack: nodejs_buildpack
-    instances: 1
-  build-parameters:
-    builder: npm-ci
-- name: cost-center-db-deployer
-  type: hdb
-  path: gen/db
-  requires:
-  - name: cost-center-db
-  parameters:
-    buildpack: nodejs_buildpack
-- name: cost-center-app-content
-  type: com.sap.application.content
-  path: .
-  requires:
-  - name: cost-center-repo-host
-    parameters:
-      content-target: true
-  build-parameters:
-    build-result: resources
+  - name: cost-center-srv
+    type: nodejs
+    path: gen/srv
     requires:
-    - artifacts:
-      - comdeloittemdgcostcentercostcenter.zip
-      name: comdeloittemdgcostcentercostcenter
-      target-path: resources/
-- name: comdeloittemdgcostcentercostcenter
-  type: html5
-  path: app/costcenter
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-resources:
-- name: cost-center-db
-  type: com.sap.xs.hdi-container
-  parameters:
-    service: hana
-    service-plan: hdi-shared
-- name: cost-center-repo-host
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: html5-apps-repo
-    service-name: cost-center-html5-service
-    service-plan: app-host
-- name: cost-center-destination-service
-  type: org.cloudfoundry.managed-service
-  parameters:
-    config:
-      HTML5Runtime_enabled: false
-      init_data:
+      - name: cost-center-db
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+      instances: 1
+    build-parameters:
+      builder: npm-ci
+
+  - name: cost-center-db-deployer
+    type: hdb
+    path: gen/db
+    requires:
+      - name: cost-center-db
+    parameters:
+      buildpack: nodejs_buildpack
+
+  - name: cost-center-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: cost-center-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - comdeloittemdgcostcentercostcenter.zip
+          name: comdeloittemdgcostcentercostcenter
+          target-path: resources/
+
+  - name: comdeloittemdgcostcentercostcenter
+    type: html5
+    path: app/costcenter
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+
+  - name: cost-center-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: cost-center-destination-service
+        parameters:
+          content-target: true
+      - name: cost-center-repo-host
+        parameters:
+          service-key:
+            name: cost-center-repo-host-key
+      - name: cost-center-xsuaa
+        parameters:
+          service-key:
+            name: cost-center-xsuaa-key
+    parameters:
+      content:
         instance:
           destinations:
-          - Authentication: NoAuthentication
-            Name: ui5
-            ProxyType: Internet
-            Type: HTTP
-            URL: https://ui5.sap.com
-          existing_destinations_policy: update
-      version: 1.0.0
-    service: destination
-    service-name: cost-center-destination-service
-    service-plan: lite
+            - Name: SAP_S4_ODATA
+              Type: HTTP
+              URL: <YOUR_S4_ODATA_URL>
+              Authentication: OAuth2UserTokenExchange
+          existing_destinations_policy: ignore
+    build-parameters:
+      no-source: true
+
+resources:
+  - name: cost-center-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  - name: cost-center-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: cost-center-html5-service
+      service-plan: app-host
+
+  - name: cost-center-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-name: cost-center-destination-service
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            destinations: []
+        version: 1.0.0
+
+  - name: cost-center-xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+
 parameters:
   deploy_mode: html5-repo
   enable-parallel-deployments: true
+
 build-parameters:
   before-all:
-  - builder: custom
-    commands:
-    - npm ci
-    - npx cds build --production
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
