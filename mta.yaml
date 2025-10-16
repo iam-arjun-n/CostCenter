@@ -70,10 +70,15 @@ modules:
       content:
         instance:
           destinations:
-            - Name: SAP_S4_ODATA
-              Type: HTTP
-              URL: <YOUR_S4_ODATA_URL>
-              Authentication: OAuth2UserTokenExchange
+            - Name: CostCenter_Router_HTML5Repo
+              ServiceInstanceName: cost-center-repo-host
+              ServiceKeyName: cost-center-repo-host-key
+              sap.cloud.service: CostCenter-Router
+            - Authentication: OAuth2UserTokenExchange
+              Name: CostCenter_Router_uaa
+              ServiceInstanceName: cost-center-xsuaa
+              ServiceKeyName: cost-center-xsuaa-key
+              sap.cloud.service: CostCenter-Router
           existing_destinations_policy: ignore
     build-parameters:
       no-source: true
